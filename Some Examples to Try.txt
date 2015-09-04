@@ -1,0 +1,7 @@
+Example 1: (irreducible lambda term -- -- break out with Ctrl + C)
+
+((\x.(x|x))|(\x.(x|x)))
+
+Example 2: (currying)
+
+(((\x.(\y.(x|y)))|a)|b)

@@ -4,8 +4,23 @@
 import Text.Parsec as Parsec hiding ((<|>))
 import Control.Applicative
 
-data Term a = Atom a | Abstraction (Term a) (Term a) | Application (Term a) (Term a) deriving (Show, Eq)
+data Term a = Atom a | Abstraction (Term a) (Term a) | Application (Term a) (Term a) deriving (Eq, Show)
 type LambdaTerm = Term String
+
+main :: IO ()
+main = do
+	putStr ">"
+	str <- getLine
+	putStrLn.format $ beta <$> lambdaTerm str
+	main
+
+-- Lets write a nice formatter for lambda terms
+-- (later this has to be used applicatively
+format :: Either ParseError LambdaTerm -> String
+format (Right (Atom x)) = x
+format (Right (Abstraction x t)) = "(\\" ++ format (Right x) ++ "." ++ format (Right t) ++ ")"
+format (Right (Application s t)) = format (Right s) ++ format (Right t) 
+format (Left err) = show err
 
 wrapSpaces :: Parsec String () a -> Parsec String () a
 wrapSpaces parser = spaces *> parser <* spaces
@@ -48,13 +63,9 @@ abstraction = Abstraction <$> (lambda *> atom) <*> (dot *> term)
 application :: Parsec String () LambdaTerm
 application = Application <$> (term <* apply) <*> term
 
--- Test function, example "test term "lambda_expression""
--- Note lambda must be escaped, and written \\	
-test :: Parsec String () a -> String -> Either ParseError a
-test par str = parse par ("Input string: " ++ str) str
-
+-- This parses a string into a lambda term
 lambdaTerm :: String -> Either ParseError LambdaTerm
-lambdaTerm = test term
+lambdaTerm str = parse term ("Input string: " ++ str) str
 
 -- Best used in applicative style with lambdaTerm
 substitute :: (Eq a) => Term a -> Term a -> Term a -> Term a
@@ -70,8 +81,3 @@ beta term@(Application f s) = case f of (Abstraction x t) -> beta $ substitute x
 					(Application g r) -> beta $ (Application (beta $ Application g r) s)
 					_ -> term
 beta term = term
-
--- Trying to reduce an irreducible term -- break out with Ctrl + C
-example1 = beta <$> lambdaTerm "((\\x.(x|x))|(\\x.(x|x)))"
--- Currying
-example2 = beta <$> lambdaTerm "(((\\x.(\\y.(x|y)))|a)|b)"

@@ -1,7 +1,15 @@
-Example 1: (irreducible lambda term -- -- break out with Ctrl + C)
+Example 1: Irreducible Lambda term -- (break out with Ctrl + C)
 
 ((\x.(x|x))|(\x.(x|x)))
 
-Example 2: (currying)
+Example 2: Currying
 
 (((\x.(\y.(x|y)))|a)|b)
+
+Example 3: Church Numerals
+0 : (\f.(\x.x))
+1: (\f.(\x.(f|x)))
+2: (\f.(\x.(f|(f|x))))
+
+Example 4.
+((\x.((\y.(x|y))|b))|a)

@@ -1,6 +1,7 @@
 -- Lets build a parser for the lambda calculus
 -- or at least something like it :P
 
+import System.IO
 import Text.Parsec as Parsec hiding ((<|>))
 import Control.Applicative
 
@@ -9,13 +10,15 @@ type LambdaTerm = Term String
 
 main :: IO ()
 main = do
-	putStr ">"
+	putStr "lambda> "
+	hFlush stdout	-- Apparently stdout is line buffered, so without this, no prompt!
 	str <- getLine
 	putStrLn.format $ beta <$> lambdaTerm str
 	main
 
 -- Lets write a nice formatter for lambda terms
--- (later this has to be used applicatively
+-- Here lets deal with the fact everything is wrapped
+-- in the (Either ParseError) monad.
 format :: Either ParseError LambdaTerm -> String
 format (Right (Atom x)) = x
 format (Right (Abstraction x t)) = "(\\" ++ format (Right x) ++ "." ++ format (Right t) ++ ")"

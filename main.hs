@@ -37,7 +37,6 @@ abstraction = Abstraction <$> (lpar *> lambda *> atom) <*> (dot *> term <* rpar)
 term :: Parsec String () LambdaTerm
 term = try(atom) <|> try(application) <|> abstraction
 
--- Abstracting application terms
 application :: Parsec String () LambdaTerm
 application = Application <$> (lpar *> term <* apply) <*> (term <* rpar)
 	

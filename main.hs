@@ -25,20 +25,30 @@ lambda = wrapSpaces $ char '\\'
 apply :: Parsec String () Char
 apply = wrapSpaces $ char '|'
 
+-- The following parses lambda terms. It identifies either an atom,
+-- or it strips left and right parentheses and then checks inside for
+-- either a lambda abstraction, or an application. This should be faster
+-- than using try excessively, with a "more natural" definition of
+-- application and abstraction below.
+term :: Parsec String () LambdaTerm
+term = try(atom) <|> (lpar *> (application <|> abstraction) <* rpar)
+
+-- atoms here must start with a letter
 atom :: Parsec String () LambdaTerm
 atom = do
 	h <- letter
 	rest <- Parsec.many alphaNum
 	return (Atom (h:rest))
 
+-- Remember we stripped the parenthesese
 abstraction :: Parsec String () LambdaTerm
-abstraction = Abstraction <$> (lpar *> lambda *> atom) <*> (dot *> term <* rpar)
+abstraction = Abstraction <$> (lambda *> atom) <*> (dot *> term)
 
-term :: Parsec String () LambdaTerm
-term = try(atom) <|> try(application) <|> abstraction
-
+-- Remember we stripped the parenthesese
 application :: Parsec String () LambdaTerm
-application = Application <$> (lpar *> term <* apply) <*> (term <* rpar)
-	
+application = Application <$> (term <* apply) <*> term
+
+-- Test function, example "test term "lambda_expression""
+-- Note lambda must be escaped, and written \\	
 test :: Parsec String () a -> String -> Either ParseError a
 test par str = parse par ("Input string: " ++ str) str

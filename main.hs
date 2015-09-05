@@ -10,7 +10,7 @@ type LambdaTerm = Term String
 
 main :: IO ()
 main = do
-	putStr "lambda> "
+	putStr "\955ambda> "
 	hFlush stdout	-- Apparently stdout is line buffered, so without this, no prompt!
 	str <- getLine
 	putStrLn.format $ beta <$> lambdaTerm str

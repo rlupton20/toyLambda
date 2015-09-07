@@ -13,7 +13,7 @@ main = do
 	putStr "\955ambda> "
 	hFlush stdout	-- Apparently stdout is line buffered, so without this, no prompt!
 	str <- getLine
-	putStrLn.format $ beta <$> lambdaTerm str
+	putStrLn.format $ eval <$> lambdaTerm str
 	main
 
 -- Lets write a nice formatter for lambda terms
@@ -69,9 +69,21 @@ substitute atom@(Atom _) term abstr@(Abstraction v' t) = if atom == v' then abst
 substitute _ _ term = term
 
 -- Again, use in an applicative style
+-- beta applies an abstraction to a term
 beta :: (Eq a) => Term a -> Term a
 beta (Atom x)  = Atom x
-beta term@(Application f s) = case f of (Abstraction x t) -> beta $ substitute x s t
-					(Application g r) -> beta $ (Application (beta $ Application g r) s)
-					_ -> term
+beta term@(Application f s) = case f of (Abstraction x t) -> substitute x s t
+                                        _ -> term
 beta term = term
+
+-- eval rebuild lambda expressions from the ground
+-- but beta reduces when it hits an abstraction applied
+-- to a term. Since this may introduce an abstraction term
+-- where only an atom was before, we need to start eval over
+-- on the beta reduced term.
+eval :: (Eq a) => Term a -> Term a
+eval (Atom x) = Atom x
+eval (Application t1 t2) = case (eval t1) of
+  (Abstraction _ _) -> eval.beta $ Application (eval t1) (eval t2)
+  _ -> Application (eval t1) (eval t2)
+eval (Abstraction x t) = Abstraction x (eval t)

@@ -1,0 +1,5 @@
+# Ignore emacs temporary or backup files
+*#
+
+# And other temporary files
+*~
